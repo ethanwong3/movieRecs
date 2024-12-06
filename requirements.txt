@@ -1,0 +1,21 @@
+# Core libraries
+pandas
+numpy
+
+# Visualization
+matplotlib
+seaborn
+
+# Web framework (if deploying)
+flask
+streamlit
+
+# Machine learning
+scikit-learn
+joblib
+
+# Download data
+requests
+
+# Notebook support
+jupyter

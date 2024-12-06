@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data files
+data/  # Exclude the entire data folder
+!data/README.md  # But keep the README file as a placeholder for the data folder
+
+# Machine learning model outputs
+*.h5
+*.ckpt
+*.joblib
+*.pkl
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Streamlit cache (if using Streamlit)
+.streamlit/
+
+# Flask instance files (if using Flask)
+instance/
+
+# Test coverage reports
+.coverage
+htmlcov/
+coverage/
+
+# pytest artifacts
+.pytest_cache/
+.tox/
+
+# Node.js modules (if used for frontend)
+node_modules/
+
+# Deployment artifacts
+*.env          # Environment variable files
+credentials/   # Any folder for API keys or sensitive files
