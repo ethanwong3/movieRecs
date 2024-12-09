@@ -1,9 +1,9 @@
 import streamlit as st
 
-# Title and introduction
-st.title("Movie Recommender System")
-st.subheader("Welcome to the Movie Recommender System!")
+# add title, subheading, and regular text to app
 
+st.title("Movie Recommender System")
+st.subheader("Welcome to Couch King! Your web-based movie recommender, personalised for your couch kingdom :)")
 st.write(
     """
     This is a demonstration of a movie recommendation system built with machine learning techniques.
@@ -12,4 +12,5 @@ st.write(
 )
 
 # Placeholder for future functionality
+
 st.write("More features coming soon!")

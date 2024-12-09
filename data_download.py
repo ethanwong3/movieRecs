@@ -10,7 +10,6 @@ https://drive.google.com/file/d/18wBVOE1F8e5TBkV3CltNB6GElEqDk82z/view?usp=drive
 https://drive.google.com/file/d/1gFdO9k5IHwNc7_Dh5hqL-b_Dd4OxCzKQ/view?usp=drive_link
 """
 
-# Define Google Drive file IDs and corresponding output filenames
 FILES = {
     "links.csv": "1vFl7Mz5nU3Nxz6WOn7rIzs_b56DCGAAa",
     "movies.csv": "1PGxUrRzQU1wK2lIO0j3E2oAGSuzKDpjk",
@@ -20,14 +19,12 @@ FILES = {
     "ratings.csv": "1gFdO9k5IHwNc7_Dh5hqL-b_Dd4OxCzKQ",
 }
 
-# Directory to store the downloaded files
 DATA_DIR = "data/ml-latest"
 os.makedirs(DATA_DIR, exist_ok=True)
 
+# downloads a file from google drive
+
 def download_file_from_google_drive(file_id, dest_path):
-    """
-    Downloads a file from Google Drive given its file ID and saves it to the destination path.
-    """
     print(f"Downloading {dest_path}...")
     url = f"https://drive.google.com/uc?id={file_id}&export=download"
     response = requests.get(url)
@@ -38,7 +35,8 @@ def download_file_from_google_drive(file_id, dest_path):
     else:
         print(f"Failed to download {dest_path} (status code: {response.status_code})")
 
-# Download each file
+# download each file
+
 for filename, file_id in FILES.items():
     dest_path = os.path.join(DATA_DIR, filename)
     download_file_from_google_drive(file_id, dest_path)
