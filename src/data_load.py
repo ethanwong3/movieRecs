@@ -6,8 +6,8 @@ import os
 
 def load():
 
-    path_ratings = 'data/ratings.csv'
-    path_movies = 'data/movies.csv'
+    path_ratings = 'data/ml-latest/ratings.csv'
+    path_movies = 'data/ml-latest/movies.csv'
 
     try:
         if not os.path.exists(path_ratings):
