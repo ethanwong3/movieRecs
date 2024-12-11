@@ -19,3 +19,5 @@ requests
 
 # Notebook support
 jupyter
+
+requests
