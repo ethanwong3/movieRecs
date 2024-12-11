@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 # Virtual environment
+.venv/
 venv/
 env/
 
@@ -11,8 +12,9 @@ env/
 .ipynb_checkpoints/
 
 # Data files
-data/  # Exclude the entire data folder
-!data/README.md  # But keep the README file as a placeholder for the data folder
+data/  # Ignore everything in the data folder
+!data/README.md  # Keep only the README file as a placeholder
+!data/*.zip  # (Optional) Allow ZIP files if needed for sharing compressed datasets
 
 # Machine learning model outputs
 *.h5
