@@ -12,9 +12,9 @@ env/
 .ipynb_checkpoints/
 
 # Data files
-data/  # Ignore everything in the data folder
-!data/README.md  # Keep only the README file as a placeholder
-!data/*.zip  # (Optional) Allow ZIP files if needed for sharing compressed datasets
+data/
+!data/README.md
+!data/*.zip
 
 # Machine learning model outputs
 *.h5
