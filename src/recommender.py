@@ -55,3 +55,8 @@ if __name__ == "__main__":
         print(recommendations)
     except ValueError as e:
         print(f"Error: {e}")
+        
+    """
+    FUTURE IMPROVEMENTS
+    - sort by popularity, instead of only relying on cosine similarity, introduce a measure that relies on number of ratings or avg ratings to further refine list
+    """
