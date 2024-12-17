@@ -7,19 +7,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.recommender import recommend_movies_based_on_genres
 
-def test_recommend_movies():
-    # Load the cleaned movies dataset
-    movies_df = pd.read_csv('data/cleaned_movies.csv')
+# Load the cleaned datasets
+movies_df = pd.read_csv('data/cleaned_movies.csv')
+ratings_df = pd.read_csv('data/cleaned_ratings.csv')
 
-    # Test the recommender with a known movie title
-    movie_title = "Toy Story (1995)"
-    print(f"Testing recommendations for: {movie_title}\n")
+def test_recommender(movie_title):
+    print(f"\nTesting recommendations for: {movie_title}")
+    try:
+        recommendations = recommend_movies_based_on_genres(movie_title, movies_df, ratings_df)
+        print(recommendations)
+    except ValueError as e:
+        print(e)
 
-    recommendations = recommend_movies_based_on_genres(movie_title, movies_df)
-    
-    # Print the recommendations
-    print("Recommended Movies:")
-    print(recommendations)
-
-if __name__ == "__main__":
-    test_recommend_movies()
+# Test the recommender with different movies
+test_recommender("Toy Story (1995)")
+test_recommender("Jumanji (1995)")
+test_recommender("The Lion King (1994)")
+test_recommender("Shrek (2001)")
