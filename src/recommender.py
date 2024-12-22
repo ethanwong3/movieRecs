@@ -1,59 +1,56 @@
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 
-def recommend_movies_based_on_genres(movie_title, movies_df, ratings_df, top_n=10):
-    """
-    Recommends movies similar to the given movie title based on genres.
-    Incorporates average ratings to refine the recommendations.
-    """
-    # Clean genres column to remove extra spaces or issues
-    movies_df['genres'] = movies_df['genres'].apply(lambda x: ' '.join(eval(x)) if isinstance(x, str) else '')
+# use genre and tag similarity to recommend movies
 
-    # Convert genres to numerical values using TF-IDF
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(movies_df['genres'])
+def recommend_movies(movie_title, movies_df, relevance_matrix, top_n=10):
+    
+    # Case-insensitive search for movie title
+    matching_movies = movies_df[movies_df['title'].str.lower() == movie_title.lower()]
+    if matching_movies.empty:
+        raise ValueError(f"Movie title '{movie_title}' not found in dataset.")
 
-    # Compute cosine similarity between all movies
-    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+    movie_id = matching_movies.index[0]
 
-    # Get the index of the movie that matches the input title
-    try:
-        movie_index = movies_df[movies_df['title'] == movie_title].index[0]
-    except IndexError:
-        raise ValueError(f"The movie '{movie_title}' was not found in the dataset.")
+    # Compute similarities
+    genre_sim = cosine_similarity(
+        TfidfVectorizer(stop_words='english').fit_transform(movies_df['genres'])
+    )
+    tag_sim = cosine_similarity(relevance_matrix)
+    blended_sim = 0.5 * genre_sim + 0.5 * tag_sim
 
-    # Retrieve similar movies based on cosine similarity
-    sim_scores = list(enumerate(cosine_sim[movie_index]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:top_n+1]  # Skip the input movie itself
+    # Get top N recommendations
+    similar_indices = blended_sim[movie_id].argsort()[::-1][1:top_n+1]
+    if not similar_indices.size:
+        print("No similar movies found.")
+        return pd.DataFrame()
 
-    # Get recommended movie indices
-    movie_indices = [i[0] for i in sim_scores]
-    recommendations = movies_df.iloc[movie_indices][['title', 'genres']]
-
-    # Add average rating for sorting
-    avg_ratings = ratings_df.groupby('movieId')['rating'].mean()
-    recommendations = recommendations.merge(movies_df[['movieId']], left_index=True, right_index=True)
-    recommendations['avg_rating'] = recommendations['movieId'].map(avg_ratings)
-    recommendations = recommendations.drop(columns='movieId')
-
-    # Sort by average rating (descending)
-    recommendations = recommendations.sort_values(by='avg_rating', ascending=False)
-
+    recommendations = movies_df.iloc[similar_indices][['title', 'genres']]
     return recommendations
 
-if __name__ == "__main__":
-    # Load cleaned datasets
-    movies_df = pd.read_csv('data/cleaned_movies.csv')
-    ratings_df = pd.read_csv('data/cleaned_ratings.csv')
 
+if __name__ == "__main__":
+    
+    movies_df = pd.read_csv('data/cleaned_movies.csv')
+    relevance_matrix = pd.read_csv('data/movie_tag_relevance.csv', index_col='movieId')
+    
     try:
-        # Test the recommender with a known movie title
-        movie_title = "Toy Story (1995)"
-        print(f"Testing recommendations for: {movie_title}\n")
-        recommendations = recommend_movies_based_on_genres(movie_title, movies_df, ratings_df)
+        recommendations = recommend_movies("Toy Story (1995)", movies_df, relevance_matrix)
         print("Recommended Movies:")
         print(recommendations)
     except ValueError as e:
         print(e)
+
+    """
+possible improvmenets
+
+- testing
+- performance optimisation through parallel processing for large dataset ipoerations (esp in data explore and recommender for better edge case handling and caching optimizations)
+
+next steps
+
+- implement collaborative filtering and hybrid recommendation system
+
+    """
