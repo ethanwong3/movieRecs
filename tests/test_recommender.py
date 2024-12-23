@@ -1,31 +1,41 @@
-import os
+# File: test_recommender.py
+import unittest
 import pandas as pd
-import sys
-
-# Add the project root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
+import numpy as np
 from src.recommender import recommend_movies
 
-def test_recommender(movie_title):
-    """
-    Test the movie recommender with a given movie title.
-    """
-    print(f"\nTesting recommendations for: {movie_title}")
+class TestRecommender(unittest.TestCase):
+    def setUp(self):
+        """Set up mock data for testing."""
+        # Mock movies dataset
+        self.movies_df = pd.DataFrame({
+            'title': ['Movie 1', 'Movie 2', 'Movie 3'],
+            'genres': ['Action|Comedy', 'Comedy|Drama', 'Action|Drama']
+        })
+        # Mock tag relevance matrix
+        self.relevance_matrix = np.array([
+            [0.8, 0.1, 0.2],  # Movie 1
+            [0.1, 0.7, 0.3],  # Movie 2
+            [0.2, 0.3, 0.9],  # Movie 3
+        ])
 
-    # Load the cleaned datasets
-    movies_df = pd.read_csv('data/cleaned_movies.csv')
+    def test_recommend_movies(self):
+        """Test recommend_movies function."""
+        recommendations = recommend_movies("Movie 1", self.movies_df, self.relevance_matrix, top_n=2)
+        self.assertEqual(len(recommendations), 2)  # Check number of recommendations
+        self.assertNotIn("Movie 1", recommendations['title'].values)  # Exclude input movie
 
-    try:
-        recommendations = recommend_movies(movie_title, movies_df)
-        print("Recommended Movies:")
-        print(recommendations)
-    except ValueError as e:
-        print(f"Error: {e}")
+    def test_invalid_movie_title(self):
+        """Test invalid movie title."""
+        with self.assertRaises(ValueError):
+            recommend_movies("Nonexistent Movie", self.movies_df, self.relevance_matrix)
+
+    def test_no_similar_movies(self):
+        """Test edge case with no similar movies."""
+        # Mock data where no similarity exists
+        self.movies_df['genres'] = ['Action', 'Comedy', 'Horror']
+        recommendations = recommend_movies("Movie 1", self.movies_df, self.relevance_matrix, top_n=2)
+        self.assertTrue(recommendations.empty)  # No recommendations should be found
 
 if __name__ == "__main__":
-    # Test with various movie titles
-    test_recommender("Toy Story (1995)")
-    test_recommender("Jumanji (1995)")
-    test_recommender("The Lion King (2019)")
-    test_recommender("Shrek (2001)")
+    unittest.main()
