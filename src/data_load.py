@@ -18,8 +18,8 @@ def load():
     # validate file existence and load data preview
 
     try:
+
         for key, path in files.items():
-            
             if not os.path.exists(path):
                 raise FileNotFoundError(f"File not found: {path}")
             datasets[key] = pd.read_csv(path)

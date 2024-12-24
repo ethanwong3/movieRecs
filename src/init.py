@@ -12,10 +12,10 @@ def run_script(script_name):
 
 def initialize_project():
     scripts = [
-        "data_clean.py",
-        "data_explore.py",
-        "data_load.py",
-        "data_preprocessing.py"
+        "src/data_load.py",
+        "src/data_clean.py",
+        "src/data_explore.py",
+        "src/data_preprocessing.py"
     ]
     
     for script in scripts:

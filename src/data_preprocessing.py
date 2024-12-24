@@ -39,3 +39,6 @@ movies_df['tags'] = movies_df['tags'].fillna('')  # Fill missing tags with empty
 movies_df.to_csv('data/processed_movies.csv', index=False)
 relevance_matrix.to_csv('data/movie_tag_relevance.csv', index=True)
 
+"""
+    problems running preprocessing in general
+"""
