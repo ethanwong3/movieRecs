@@ -5,9 +5,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 # load Datasets
 movies_df = pd.read_csv('data/cleaned_movies.csv')
 ratings_df = pd.read_csv('data/cleaned_ratings.csv')
-tags_df = pd.read_csv('data/tags.csv')
-genome_tags_df = pd.read_csv('data/genome-tags.csv')
-genome_scores_df = pd.read_csv('data/genome-scores.csv')
+tags_df = pd.read_csv('data/cleaned_tags.csv')
+genome_tags_df = pd.read_csv('data/cleaned_genome_tags.csv')
+genome_scores_df = pd.read_csv('data/cleaned_genome_scores.csv')
 
 # tags.csv
 def preprocess_tags(tags_df):
