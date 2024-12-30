@@ -5,26 +5,54 @@ import numpy as np
 
 # function to recommend movies based on genre and tag similarity
 def recommend_movies(movie_title, movies_df, relevance_matrix, top_n=10):
-    # Case-insensitive search for movie title
+    # case-insensitive search for movie title
     matching_movies = movies_df[movies_df['title'].str.lower() == movie_title.lower()]
     if matching_movies.empty:
         raise ValueError(f"Movie title '{movie_title}' not found in dataset.")
 
     movie_id = matching_movies.index[0]
 
-    # compute similarities
-    genre_sim = cosine_similarity(
-        TfidfVectorizer(stop_words='english').fit_transform(movies_df['genres'])
-    )
+    # insufficient data
+    if len(movies_df) == 0 or len(relevance_matrix) == 0:
+        print("No valid data available for recommendations.")
+        return pd.DataFrame(['title', 'genres'])
+    if relevance_matrix.shape[0] != len(movies_df):
+        raise ValueError("Relevance matrix dimensions do not match the movies dataset")
+
+    # FIXED (using passed matrix directly) (replaces commented out block below)
+    similarity_scores = relevance_matrix[movie_id]
+    
+    # check for all zero sim scores
+    if np.all(similarity_scores == 0):
+        print("No similar movies found")
+        return pd.DataFrame(columns=['title', 'genres'])
+
+    """
+    # compute genre and tag similarity
+    genre_tfidf = TfidfVectorizer(stop_words = 'english')
+    genre_matrix = genre_tfidf.fit_transform(movies_df['genres'])
+    genre_sim = cosine_similarity(genre_matrix)
+    if relevance_matrix.shape[0] != len(movies_df):
+        raise ValueError("Relevance matrix dimensions do not match the movies dataset")
     tag_sim = cosine_similarity(relevance_matrix)
+    
+    # blend similarities
     blended_sim = 0.5 * genre_sim + 0.5 * tag_sim
+    
+    # get sim scores for input movie
+    similarity_scores = blended_sim[movie_id]
+    """
+    
+    # get top N recs
+    similar_indices = np.argsort(similarity_scores)[::-1][1:top_n+1]
+    top_similarities = similarity_scores[similar_indices]
 
-    # get top N recommendations
-    similar_indices = blended_sim[movie_id].argsort()[::-1][1:top_n+1]
-    if not similar_indices.size:
+    # check if recs are valid
+    if np.all(top_similarities == 0):
         print("No similar movies found.")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['title', 'genres'])
 
+    # return valid recs
     recommendations = movies_df.iloc[similar_indices][['title', 'genres']]
     return recommendations
 
