@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+from scipy.sparse import csr_matrix
 
 # function to recommend movies based on genre and tag similarity
 def recommend_movies(movie_title, movies_df, relevance_matrix, genre_weight=0.6, tag_weight=0.4, top_n=10):
@@ -13,20 +14,43 @@ def recommend_movies(movie_title, movies_df, relevance_matrix, genre_weight=0.6,
 
     movie_id = movie.index[0]
 
-    # calculate similarity
+    print("movie id retrieved")
+
+    # calculate incremental similarity across the retrieved movie's genres
+    tfidf = TfidfVectorizer(stop_words='english')
+    genre_matrix = tfidf.fit_transform(movies_df['genres'])
+    movie_genre_vector = genre_matrix[movie_id]
+    genre_sim = cosine_similarity(movie_genre_vector, genre_matrix).flatten()
+    
+    # calculate incremental similarity across the retrieved movie's tags
+    movie_tag_vector = relevance_matrix.iloc[movie_id].values.reshape(1, -1)
+    tag_sim = cosine_similarity(movie_tag_vector, relevance_matrix).flatten()
+    
+    # blend sims
+    blended_sim = (genre_weight * genre_sim) + (tag_weight * tag_sim)
+
+    """ # calculate similarity
     genre_sim = cosine_similarity(
         TfidfVectorizer(stop_words='english').fit_transform(movies_df['genres'])
     )
     tag_sim = cosine_similarity(relevance_matrix)
     blended_sim = (genre_weight * genre_sim) + (tag_weight * tag_sim)
 
-    # get top N recommendations
+    print("similarity calced")"""
+
+    # get top N recs
+    similar_indices = blended_sim.argsort()[::-1]
+    similar_indices = [i for i in similar_indices if i != movie_id][:top_n]
+    
+    """# get top N recommendations
     similar_movie_ids = blended_sim[movie_id].argsort()[::-1][1:top_n+1] # argsort()[::-1] ==> descending order
     if not similar_movie_ids.size:
         print("No similar movies found.")
         return pd.DataFrame()
 
-    recommendations = movies_df.iloc[similar_movie_ids][['title', 'genres']] # iloc ==> selects rows by indices
+    print("top 10 found")"""
+
+    recommendations = movies_df.iloc[similar_indices][['title', 'genres']]
     return recommendations
 
 # example execution function
@@ -56,38 +80,38 @@ if __name__ == "__main__":
 
 Method: Hybrid Incremental Recommendation
 
-The current implementation of your movie recommender uses a 
-Hybrid Recommendation System combining Content-Based Filtering techniques 
-with Genre Similarity and Tag Similarity (via genome scores). 
+The current implementation of the movie recommender uses a Hybrid Recommendation System 
+combining Content-Based Filtering techniques with Genre Similarity and Tag Similarity 
+(via genome scores).
 
 Pros:
 
 - balanced complexity and performance friendly
-- realistic output
+- realistic and accurate output
 - scalable and extensible
 
 How it Works:
 
-Similar movies are found by calculating a similarity score for each movie that blends the movie's aspects below
+similar movies are determined by blending similarity scores blended from both
+genre and tag similarity:
 
-- genre similarity calculated dynamically using tf-idf vectorisation and cosine similarity
-    - tfidf vectoriser (term frequency inverse doc frequency) converts text (genres) into a numerical representation
-      this means that each genre is assigned a weight based on how frequent it appears and how unique it is
-      genres such as action might have a lower weight since they appear often. Then, fit_transform
-      computes the numerical representation and returns a sparse matrix.
-    - cosine similarity measures the cosine between the vectors of rows (movies) in a matrix.
-      We use this as cosine similarity disregards the magnitude of the angle and strictly captures the presence and weighting of shared genres.
+- Genre similarity (Pre computed using tf-idf and cosine similarity)
+    - tfidf vectorization
+      converts movie genres into numerical representations of assigned weights.
+      weights are calculated by its frequency across movies and its originality in the dataset
+    - cosine similarity
+      measures the cos angle between 2 genre vectors which identifies the weight of shared genres
+      while ignoring magnitudes
+      
+- Tag similarity (Pre computed genome scores)
+    - pre processed relevance matrix maps movies to their tag-based relevance scores
+    - cos similarity is calculated directly using the precomputed matrix to compare tag vectors of movies
     
-- tag similarity is derived from genome data and uses a preprocessed relevance matrix to capture tag-based similarities
+- Blended sim = weighted avg of both sims
 
-
-POSSIBLE IMPROVEMENTS
-
-- testing
-- performance optimisation through parallel processing for large dataset ipoerations (esp in data explore and recommender for better edge case handling and caching optimizations)
-
-next steps
-
-- implement collaborative filtering and hybrid recommendation system
-
+Suggestions:
+- incremental sim computation
+- pre computation of matrices
+- sparse representations
+- parallel processing
 """
