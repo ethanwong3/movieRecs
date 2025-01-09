@@ -2,8 +2,9 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import time
 
-# load Datasets
+# Load Datasets
 try:
     movies_df = pd.read_csv('data/cleaned_movies.csv')
     tags_df = pd.read_csv('data/cleaned_tags.csv')
@@ -14,42 +15,55 @@ except FileNotFoundError as e:
     print(f"Error: {e}")
     exit(1)
 
-# preprocess tags
+# Preprocess tags
 def preprocess_tags(tags_df):
-    
-    # format data handling NaN and tag aggregation
     tags_df['tag'] = tags_df['tag'].fillna('').astype(str).str.lower().str.strip()
     aggregated_tags = tags_df.groupby('movieId')['tag'].apply(lambda x: ' '.join(x))
     aggregated_tags = aggregated_tags.reset_index().rename(columns={'tag': 'tags'})
     return aggregated_tags
 
-# preprocess genome data
+# Preprocess genome data
 def preprocess_genome_data(genome_tags_df, genome_scores_df):
-    
-    # mapping tagId to tagName to attach to genome scores
     tag_dict = genome_tags_df.set_index('tagId')['tag'].to_dict()
     genome_scores_df['tagName'] = genome_scores_df['tagId'].map(tag_dict)
-    
-    # create a movie-tag relevance matrix
     relevance_matrix = genome_scores_df.pivot(index='movieId', columns='tagName', values='relevance').fillna(0)
     return relevance_matrix
 
-# precompute genre similarity
-def precompute_genre_similarity(movies_df):
+# Precompute genre similarity
+def precompute_genre_similarity(movies_df, chunk_size=1000, top_n=10):
     tfidf = TfidfVectorizer(stop_words='english')
     genre_matrix = tfidf.fit_transform(movies_df['genres'])
-    genre_similarity = cosine_similarity(genre_matrix)
-    return genre_similarity
+    num_movies = genre_matrix.shape[0]
+    
+    # Sparse format: Only store top-N similar movies
+    sparse_similarity = {}
 
-# preprocess data
+    for start in range(0, num_movies, chunk_size):
+        end = min(start + chunk_size, num_movies)
+        chunk_similarity = cosine_similarity(genre_matrix[start:end], genre_matrix)
+
+        # Only store top-N similar movies for each movie
+        for i, row in enumerate(chunk_similarity):
+            top_indices = row.argsort()[-top_n-1:-1][::-1]
+            sparse_similarity[start + i] = {j: row[j] for j in top_indices}
+        print(f"Computed similarity for movies {start} to {end}")
+    
+    return sparse_similarity
+
+# Start timing
+start_time = time.time()
+
+# Preprocess data
 aggregated_tags = preprocess_tags(tags_df)
 relevance_matrix = preprocess_genome_data(genome_tags_df, genome_scores_df)
 genre_similarity = precompute_genre_similarity(movies_df)
 
-# merge tags and save
+# Merge tags and save data
 movies_df = movies_df.merge(aggregated_tags, on='movieId', how='left').fillna('')
 movies_df.to_csv('data/processed_movies.csv', index=False)
-pd.DataFrame(genre_similarity).to_csv('data/genre_similarity_matrix.csv', index=False)
+
+# Save genre similarity and relevance matrix in binary format
+np.save('data/genre_similarity_matrix.npy', genre_similarity)
 relevance_matrix.to_csv('data/movie_tag_relevance.csv', index=True)
 
-print("Data preprocessing completed successfully.")
+print(f"Data preprocessing completed successfully in {time.time() - start_time:.2f} seconds.")
