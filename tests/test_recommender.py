@@ -1,54 +1,89 @@
 import unittest
 import pandas as pd
 import numpy as np
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 from recommender import recommend_movies
+
 
 class TestRecommender(unittest.TestCase):
     def setUp(self):
-        """Set up mock data for testing."""
+        """
+        Set up mock data for testing.
+        """
         # Mock movies dataset
         self.movies_df = pd.DataFrame({
             'title': ['Movie 1', 'Movie 2', 'Movie 3'],
-            'genres': ['Action|Comedy', 'Comedy|Drama', 'Action|Drama']
+            'genres': ['Action|Comedy', 'Drama|Fantasy', 'Sci-Fi|Horror']
         })
 
         # Mock tag relevance matrix
         self.relevance_matrix = np.array([
-            [0.8, 0.1, 0.2],  # Movie 1
-            [0.1, 0.7, 0.3],  # Movie 2
-            [0.2, 0.3, 0.9]   # Movie 3
+            [0.0, 0.0, 0.0],  # Movie 1 has no similarity to other movies
+            [0.0, 0.0, 0.0],  # Movie 2 has no similarity to other movies
+            [0.0, 0.0, 0.0]   # Movie 3 has no similarity to other movies
         ])
 
-        # Mock precomputed genre similarity
-        self.genre_similarity_file = 'data/genre_similarity_incremental.csv'
-        pd.DataFrame([
-            [1.0, 0.2, 0.3],
-            [0.2, 1.0, 0.4],
-            [0.3, 0.4, 1.0]
-        ]).to_csv(self.genre_similarity_file, header=None, index=False)
-
     def test_recommend_movies(self):
-        """Test recommend_movies function."""
-        recommendations = recommend_movies("Movie 1", self.movies_df, self.relevance_matrix)
-        self.assertEqual(len(recommendations), 2)  # Check number of recommendations
-        self.assertNotIn("Movie 1", recommendations['title'].values)  # Exclude input movie
+        """
+        Test the recommend_movies function for basic functionality.
+        """
+        recommendations = recommend_movies(
+            movie_title="Movie 1",
+            movies_df=self.movies_df,
+            relevance_matrix=self.relevance_matrix,
+            top_n=2
+        )
+        # Check the length of the recommendations
+        self.assertEqual(len(recommendations), 0, "No recommendations should be made as relevance matrix is zero.")
 
     def test_invalid_movie_title(self):
-        """Test invalid movie title."""
+        """
+        Test behavior when the movie title does not exist in the dataset.
+        """
         with self.assertRaises(ValueError):
-            recommend_movies("Nonexistent Movie", self.movies_df, self.relevance_matrix)
+            recommend_movies(
+                movie_title="Nonexistent Movie",
+                movies_df=self.movies_df,
+                relevance_matrix=self.relevance_matrix
+            )
 
     def test_no_similar_movies(self):
-        """Test edge case with no similar movies."""
-        empty_matrix = np.zeros((3, 3))  # No similarity between movies
-        recommendations = recommend_movies("Movie 1", self.movies_df, empty_matrix)
-        self.assertTrue(recommendations.empty)  # No recommendations should be found
+        """
+        Test edge case where no movies meet the similarity threshold.
+        """
+        recommendations = recommend_movies(
+            movie_title="Movie 1",
+            movies_df=self.movies_df,
+            relevance_matrix=self.relevance_matrix,
+            top_n=5,
+            similarity_threshold=0.1
+        )
+        # Assert that the recommendations DataFrame is empty
+        self.assertTrue(recommendations.empty, "Recommendations should be empty when no similar movies exist.")
 
-    def tearDown(self):
-        """Clean up after tests."""
-        if os.path.exists(self.genre_similarity_file):
-            os.remove(self.genre_similarity_file)
+    def test_with_similar_movies(self):
+        """
+        Test case where there are valid recommendations above the similarity threshold.
+        """
+        relevance_matrix_with_similarity = np.array([
+            [1.0, 0.6, 0.2],  # Movie 1 is somewhat similar to Movie 2
+            [0.6, 1.0, 0.3],  # Movie 2 is somewhat similar to Movie 1 and Movie 3
+            [0.2, 0.3, 1.0]   # Movie 3 is slightly similar to Movie 2
+        ])
+
+        recommendations = recommend_movies(
+            movie_title="Movie 1",
+            movies_df=self.movies_df,
+            relevance_matrix=relevance_matrix_with_similarity,
+            top_n=2,
+            similarity_threshold=0.1
+        )
+        # Assert that the recommendations DataFrame contains the correct results
+        self.assertEqual(len(recommendations), 2, "Two movies should be recommended.")
+        self.assertIn("Movie 2", recommendations['title'].values, "Movie 2 should be in recommendations.")
+        self.assertNotIn("Movie 1", recommendations['title'].values, "Movie 1 should not recommend itself.")
 
 if __name__ == "__main__":
     unittest.main()
