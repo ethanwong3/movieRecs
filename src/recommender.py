@@ -4,26 +4,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from scipy.sparse import csr_matrix
 
-# Function to recommend movies based on genre and tag similarity
-import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
+def recommend_movies(movie_title, movies_df, genre_matrix_path, tag_matrix_path, top_n=10, similarity_threshold=0.1):
+    # Load precomputed matrices
+    genre_sim = np.load(genre_matrix_path)
+    tag_sim = np.load(tag_matrix_path)
 
-def recommend_movies(movie_title, movies_df, relevance_matrix, top_n=10, similarity_threshold=0.1):
-    """
-    Recommend movies based on genre and tag similarity.
-
-    Args:
-        movie_title (str): Title of the input movie.
-        movies_df (pd.DataFrame): DataFrame containing movies and their genres.
-        relevance_matrix (np.ndarray or pd.DataFrame): Precomputed tag relevance matrix.
-        top_n (int): Number of top recommendations to return.
-        similarity_threshold (float): Minimum similarity score to consider for recommendations.
-
-    Returns:
-        pd.DataFrame: DataFrame of recommended movies with titles and genres.
-    """
     # Case-insensitive search for movie title
     matching_movies = movies_df[movies_df['title'].str.lower() == movie_title.lower()]
     if matching_movies.empty:
@@ -32,26 +17,18 @@ def recommend_movies(movie_title, movies_df, relevance_matrix, top_n=10, similar
     # Get movie index
     movie_index = matching_movies.index[0]
 
-    # Ensure relevance_matrix is a NumPy array
-    if isinstance(relevance_matrix, pd.DataFrame):
-        relevance_matrix = relevance_matrix.values
-
-    # Compute genre similarity
-    genre_vectorizer = TfidfVectorizer(stop_words='english')
-    genre_matrix = genre_vectorizer.fit_transform(movies_df['genres'])
-    genre_sim = cosine_similarity(genre_matrix)
-
     # Blend similarities
-    blended_sim = 0.5 * genre_sim + 0.5 * relevance_matrix
+    blended_sim = 0.5 * genre_sim + 0.5 * tag_sim
 
-    # Exclude self-similarity and apply similarity threshold
+    # Filter similarities below threshold
     similarity_scores = blended_sim[movie_index]
-    similarity_scores[movie_index] = 0  # Set self-similarity to 0
+    similarity_scores[movie_index] = 0  # Exclude self-similarity
     valid_indices = np.where(similarity_scores >= similarity_threshold)[0]
 
     # Check for no valid recommendations
     if valid_indices.size == 0:
-        return pd.DataFrame(columns=['title', 'genres'])  # Return empty DataFrame if no valid recommendations
+        print("No similar movies found.")
+        return pd.DataFrame()
 
     # Get top N similar movies
     similar_movie_indices = similarity_scores.argsort()[::-1][:top_n]
@@ -111,14 +88,10 @@ def recommend_movies(movie_title, movies_df, relevance_matrix, genre_weight=0.6,
 # example execution function
 def run_example():
     try:
-        # Load data
-        movies_df = pd.read_csv('data/cleaned_movies.csv')
-        relevance_matrix = pd.read_csv('data/movie_tag_relevance.csv', index_col='movieId')
-
-        print("start")
-        
-        # Example: Recommend movies for "Toy Story (1995)"
-        recommendations = recommend_movies("Scream (1996)", movies_df, relevance_matrix)
+        movies_df = pd.read_csv('data/processed_movies.csv')
+        genre_matrix_path = 'data/genre_similarity_matrix.npy'
+        tag_matrix_path = 'data/tag_similarity_matrix.npy'
+        recommendations = recommend_movies("Toy Story (1995)", movies_df, genre_matrix_path, tag_matrix_path)
         print("Recommended Movies:")
         print(recommendations)
     except ValueError as e:
