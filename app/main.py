@@ -1,16 +1,22 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
+from recommender import recommend_movies
 
-# add title, subheading, and regular text to app
+# Load preprocessed data
+movies_df = pd.read_csv('data/processed_movies.csv')
+genre_similarity = np.load('data/genre_similarity_matrix.npy')
 
+# Streamlit interface
 st.title("Movie Recommender System")
-st.subheader("Welcome to Couch King! Your web-based movie recommender, personalised for your couch kingdom :)")
-st.write(
-    """
-    This is a demonstration of a movie recommendation system built with machine learning techniques.
-    Features such as collaborative filtering, content-based filtering, and hybrid models will be implemented.
-    """
-)
+st.sidebar.header("Input")
+movie_title = st.sidebar.text_input("Enter Movie Title", "Toy Story")
+top_n = st.sidebar.slider("Number of Recommendations", 1, 20, 10)
 
-# Placeholder for future functionality
-
-st.write("More features coming soon!")
+if st.sidebar.button("Get Recommendations"):
+    try:
+        recommendations = recommend_movies(movie_title, movies_df, genre_similarity, top_n=top_n)
+        st.write(f"Recommendations for {movie_title}:")
+        st.table(recommendations)
+    except ValueError as e:
+        st.error(str(e))
