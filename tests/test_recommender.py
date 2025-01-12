@@ -1,8 +1,13 @@
 import unittest
 import pandas as pd
 import numpy as np
-from recommender import recommend_movies
+import sys
+import os
 
+# Add the `src` directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
+from recommender import recommend_movies
 class TestRecommender(unittest.TestCase):
     def setUp(self):
         self.movies_df = pd.DataFrame({
