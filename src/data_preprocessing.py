@@ -3,61 +3,97 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-def preprocess_genre_column(movies_df):
-    """Preprocess the genres column for TF-IDF."""
-    movies_df['genres_str'] = movies_df['genres'].apply(lambda genres: " ".join(genres) if isinstance(genres, list) else "")
-    return movies_df
+def precompute_genre_similarity(movies_df):
+    """Compute a genre similarity matrix using TF-IDF and cosine similarity."""
+    # Ensure genres are processed correctly
+    movies_df["genres_str"] = movies_df["genres"].apply(
+        lambda genres: " ".join(genres) if isinstance(genres, list) else ""
+    )
 
-def compute_genre_similarity(movies_df):
-    """Compute a genre similarity matrix."""
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(movies_df['genres_str'])
-    return cosine_similarity(tfidf_matrix)
+    # Handle empty or missing genre strings
+    movies_df["genres_str"] = movies_df["genres_str"].replace("", "unknown")
 
-def compute_tag_similarity(tags_df, movies_df):
-    """Compute a tag similarity matrix."""
-    # Aggregate tags per movie
-    tags_per_movie = tags_df.groupby('movieId')['tag'].apply(lambda tags: " ".join(tags)).reindex(movies_df['movieId'], fill_value="")
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(tags_per_movie)
-    return cosine_similarity(tfidf_matrix)
+    # Debugging: Check sample genre strings
+    print("Sample genre strings after processing:", movies_df["genres_str"].head())
 
-def compute_ratings_similarity(ratings_df, movies_df):
-    """Compute a ratings similarity matrix using collaborative filtering."""
-    user_movie_matrix = ratings_df.pivot(index='userId', columns='movieId', values='rating').fillna(0)
-    return cosine_similarity(user_movie_matrix.T)  # Transpose to get movie-to-movie similarity
+    if movies_df["genres_str"].str.strip().eq("").any():
+        raise ValueError("Found empty genre strings after processing. Check the input data.")
+
+    tfidf = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = tfidf.fit_transform(movies_df["genres_str"])
+    genre_similarity = cosine_similarity(tfidf_matrix)
+
+    return genre_similarity
+
+def precompute_tag_similarity(tags_df, movies_df):
+    """Compute a tag similarity matrix using TF-IDF and cosine similarity."""
+    # Group tags by movieId and join them into space-separated strings
+    tag_data = tags_df.groupby("movieId")["tag"].apply(
+        lambda tags: " ".join(tags.astype(str))
+    ).reindex(movies_df["movieId"], fill_value="")
+
+    # Debugging: Check sample tag data
+    print("Sample tag data after grouping:", tag_data.head())
+
+    # Ensure there are no empty tag strings
+    if tag_data.str.strip().eq("").any():
+        raise ValueError("Found empty tag strings after processing. Check the tags dataset.")
+
+    # Use TF-IDF to vectorize tags
+    tfidf = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = tfidf.fit_transform(tag_data)
+
+    # Compute cosine similarity
+    tag_similarity = cosine_similarity(tfidf_matrix)
+
+    return tag_similarity
+
+
+def precompute_ratings_similarity(ratings_df, movies_df):
+    """Compute a ratings similarity matrix using user-movie ratings."""
+    pivot_table = ratings_df.pivot(index="movieId", columns="userId", values="rating").fillna(0)
+    pivot_table = pivot_table.reindex(index=movies_df["movieId"], fill_value=0)
+    ratings_similarity = cosine_similarity(pivot_table)
+
+    return ratings_similarity
 
 def preprocess_data():
     """Preprocess data and compute similarity matrices."""
-    # Load cleaned data
-    movies_file = "data/cleaned_movies.csv"
-    tags_file = "data/cleaned_tags.csv"
-    ratings_file = "data/cleaned_ratings.csv"
+    try:
+        # Load cleaned data
+        print("Loading cleaned data...")
+        movies_df = pd.read_csv("data/cleaned_movies.csv")
+        tags_df = pd.read_csv("data/cleaned_tags.csv")
+        ratings_df = pd.read_csv("data/cleaned_ratings.csv")
 
-    movies_df = pd.read_csv(movies_file)
-    tags_df = pd.read_csv(tags_file)
-    ratings_df = pd.read_csv(ratings_file)
+        # Debugging: Check for missing or malformed data
+        print("Checking for missing genres...")
+        if movies_df["genres"].isna().any():
+            raise ValueError("Found missing genres in the movies data.")
 
-    # Compute similarity matrices
-    print("Computing genre similarity matrix...")
-    movies_df = preprocess_genre_column(movies_df)
-    genre_similarity = compute_genre_similarity(movies_df)
-    print("Genre similarity matrix computed.")
+        print("Checking for missing tags...")
+        if tags_df["tag"].isna().any():
+            raise ValueError("Found missing tags in the tags data.")
 
-    print("Computing tag similarity matrix...")
-    tag_similarity = compute_tag_similarity(tags_df, movies_df)
-    print("Tag similarity matrix computed.")
+        print("Computing genre similarity matrix...")
+        genre_similarity = precompute_genre_similarity(movies_df)
 
-    print("Computing ratings similarity matrix...")
-    ratings_similarity = compute_ratings_similarity(ratings_df, movies_df)
-    print("Ratings similarity matrix computed.")
+        print("Computing tag similarity matrix...")
+        tag_similarity = precompute_tag_similarity(tags_df, movies_df)
 
-    # Save results
-    print("Saving similarity matrices...")
-    np.save("data/genre_similarity_matrix.npy", genre_similarity)
-    np.save("data/tag_similarity_matrix.npy", tag_similarity)
-    np.save("data/ratings_similarity_matrix.npy", ratings_similarity)
-    print("Similarity matrices saved successfully.")
+        print("Computing ratings similarity matrix...")
+        ratings_similarity = precompute_ratings_similarity(ratings_df, movies_df)
+
+        # Save results
+        print("Saving similarity matrices...")
+        np.save("data/genre_similarity_matrix.npy", genre_similarity)
+        np.save("data/tag_similarity_matrix.npy", tag_similarity)
+        np.save("data/ratings_similarity_matrix.npy", ratings_similarity)
+
+        print("Similarity matrices saved successfully.")
+    except Exception as e:
+        print(f"Error during preprocessing: {e}")
+        raise
 
 if __name__ == "__main__":
     preprocess_data()

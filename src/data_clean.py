@@ -3,8 +3,15 @@ import os
 
 def clean_movies(file_path):
     """Clean the movies data."""
-    movies = pd.read_csv(file_path, sep="::", engine="python", header=None, names=["movieId", "title", "genres"])
-    movies["genres"] = movies["genres"].str.split("|")
+    movies = pd.read_csv(
+        file_path,
+        sep="::",
+        engine="python",
+        header=None,
+        names=["movieId", "title", "genres"]
+    )
+    # Ensure genres are lists and handle missing genres
+    movies["genres"] = movies["genres"].fillna("unknown").str.split("|")
     return movies
 
 def clean_ratings(file_path):
@@ -14,8 +21,15 @@ def clean_ratings(file_path):
 
 def clean_tags(file_path):
     """Clean the tags data."""
-    tags = pd.read_csv(file_path, sep="::", engine="python", header=None, names=["userId", "movieId", "tag", "timestamp"])
-    tags["tag"] = tags["tag"].str.lower().str.strip()
+    tags = pd.read_csv(
+        file_path,
+        sep="::",
+        engine="python",
+        header=None,
+        names=["userId", "movieId", "tag", "timestamp"]
+    )
+    # Ensure tags are strings and handle missing values
+    tags["tag"] = tags["tag"].fillna("unknown").astype(str).str.lower().str.strip()
     return tags
 
 def save_cleaned_data(movies, ratings, tags, output_dir="data"):

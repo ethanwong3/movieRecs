@@ -11,26 +11,19 @@ def run_script(script_name):
         raise
 
 def initialize_project():
-    """Prepare the project end-to-end."""
+    """Initialize the project by running all scripts in order."""
     scripts = [
         "src/data_clean.py",
-        "src/data_preprocessing.py",
-        "src/data_explore.py"
+        "src/data_preprocessing.py"
     ]
 
-    # Check if all data files exist
-    data_files = [
-        "data/cleaned_movies.csv",
-        "data/genre_similarity_matrix.npy",
-        "data/tag_similarity_matrix.npy",
-        "data/ratings_similarity_matrix.npy"
-    ]
-    if not all(os.path.exists(f) for f in data_files):
-        print("Data files are missing, running the data pipeline...")
-        for script in scripts:
-            run_script(script)
-    else:
-        print("All data files exist. Skipping preprocessing steps.")
+    for script in scripts:
+        run_script(script)
+
+    # Explicitly call preprocess_data for similarity matrices
+    print("Running data preprocessing pipeline...")
+    from src.data_preprocessing import preprocess_data
+    preprocess_data()
 
 if __name__ == "__main__":
     initialize_project()
