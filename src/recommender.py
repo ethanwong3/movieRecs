@@ -5,8 +5,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 def recommend_movies(movie_title, movies_df, genre_similarity, top_n=10, similarity_threshold=0.1):
     """Recommend movies based on title and genre similarity."""
-    # Find the movie index
-    matching_movies = movies_df[movies_df['title'].str.contains(movie_title, case=False)]
+    # Case-insensitive search for movie title
+    matching_movies = movies_df[
+        movies_df['title'].str.lower().str.strip().str.contains(
+            movie_title.lower().strip(), case=False, regex=False
+        )
+    ]
     if matching_movies.empty:
         raise ValueError(f"Movie title '{movie_title}' not found in dataset.")
     movie_index = matching_movies.index[0]
@@ -14,21 +18,28 @@ def recommend_movies(movie_title, movies_df, genre_similarity, top_n=10, similar
     # Get similarity scores
     similarity_scores = genre_similarity[movie_index]
     similarity_scores[movie_index] = 0  # Exclude self-similarity
+
+    # Debugging: Check similarity scores
+    print(f"Similarity Scores for '{movie_title}':", similarity_scores)
+
+    # Apply similarity threshold
     valid_indices = np.where(similarity_scores >= similarity_threshold)[0]
 
     # Check for no valid recommendations
     if valid_indices.size == 0:
         return pd.DataFrame(columns=["title", "genres"])  # Empty DataFrame for no recommendations
 
-    # Get top N recommendations
-    similar_movie_indices = similarity_scores.argsort()[::-1][:top_n]
-    recommendations = movies_df.iloc[similar_movie_indices][['title', 'genres']]
+    # Sort by similarity scores and get top N
+    sorted_indices = valid_indices[np.argsort(similarity_scores[valid_indices])[::-1]]
+    top_indices = sorted_indices[:top_n]
+
+    recommendations = movies_df.iloc[top_indices][['title', 'genres']]
     return recommendations
 
 if __name__ == "__main__":
     # Load processed data
     try:
-        movies_df = pd.read_csv("data/processed_movies.csv")
+        movies_df = pd.read_csv("data/cleaned_movies.csv")
         genre_similarity = np.load("data/genre_similarity_matrix.npy")
     except FileNotFoundError as e:
         print(f"Error: Required data file not found. Please run preprocessing first. ({e})")
