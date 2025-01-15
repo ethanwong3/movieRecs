@@ -13,30 +13,24 @@ def run_script(script_name):
 def initialize_project():
     """Prepare the project end-to-end."""
     scripts = [
-        "src/data_clean.py",          # Step 1: Clean raw data
-        "src/data_preprocessing.py", # Step 2: Preprocess cleaned data
-        "src/data_explore.py"        # Optional: Explore data
+        "src/data_clean.py",
+        "src/data_preprocessing.py",
+        "src/data_explore.py"
     ]
 
-    # Check if all cleaned and preprocessed files exist
-    cleaned_files = [
+    # Check if all data files exist
+    data_files = [
         "data/cleaned_movies.csv",
-        "data/cleaned_ratings.csv",
-        "data/cleaned_tags.csv"
+        "data/genre_similarity_matrix.npy",
+        "data/tag_similarity_matrix.npy",
+        "data/ratings_similarity_matrix.npy"
     ]
-    preprocessed_files = [
-        "data/genre_similarity_matrix.npy"
-    ]
-
-    if not all(os.path.exists(f) for f in cleaned_files + preprocessed_files):
-        print("Some data files are missing, running the data pipeline...")
+    if not all(os.path.exists(f) for f in data_files):
+        print("Data files are missing, running the data pipeline...")
         for script in scripts:
-            if not os.path.exists(script):
-                print(f"Error: {script} not found.")
-                continue
             run_script(script)
     else:
-        print("All data files already exist. Skipping preprocessing steps.")
+        print("All data files exist. Skipping preprocessing steps.")
 
 if __name__ == "__main__":
     initialize_project()
