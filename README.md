@@ -1,94 +1,198 @@
-# Movie Recommender System
+# Movie Recommendation System
 
-A movie recommendation system built using **Python** and **machine learning techniques**. This project demonstrates collaborative filtering, content-based filtering, and hybrid recommendation models. The data is sourced from **MovieLens**.
+Welcome to the **Movie Recommendation System** project! This project showcases a robust recommendation engine powered by data preprocessing, advanced similarity computation, and a user-friendly **Streamlit** web app. The system demonstrates a variety of technical and analytical skills, such as data engineering, machine learning, and backend/frontend integration.
+
+---
+
+## Project Overview
+
+The **Movie Recommendation System** provides personalized movie recommendations using a combination of genres, user-generated tags, and movie ratings. It allows users to:
+
+- Search for a movie title and receive tailored recommendations.
+- Adjust the importance (weights) of genres, tags, and ratings to fine-tune the recommendations.
+- Visualize and interact with results in a minimalist yet functional web interface.
 
 ---
 
 ## Features
 
-- Collaborative Filtering (User-to-User and Item-to-Item)
-- Content-Based Filtering (Based on movie metadata)
-- Hybrid Models (Combines collaborative and content-based approaches)
-- Data download script to fetch datasets from Google Drive
-- Interactive Web App using Streamlit or Flask
+### Backend Features:
+
+1. **Blended Similarity Computation**:
+
+   - Combines **genre similarity**, **tag similarity**, and **ratings similarity** into a weighted scoring system.
+   - Dynamic weighting: Users can customize how much each factor contributes to recommendations.
+
+2. **Preprocessing Pipeline**:
+
+   - Cleans raw datasets and generates precomputed similarity matrices for fast query response.
+   - Handles missing values, malformed data, and edge cases to ensure robustness.
+
+3. **Efficient Recommendation Logic**:
+
+   - Utilizes **cosine similarity** and **TF-IDF vectorization** for high-quality recommendations.
+   - Includes threshold-based filtering to ensure only relevant movies are recommended.
+
+### Frontend Features:
+
+1. **Streamlit Web App**:
+
+   - Clean and intuitive interface.
+   - Input field for searching movie titles.
+   - Sliders for adjusting blending weights for genres, tags, and ratings.
+   - Tabular display of recommendations with associated genres, tags, and average ratings.
+
+2. **Interactivity**:
+
+   - Allows real-time fine-tuning of recommendation logic via weight sliders.
+   - Provides quick feedback on recommendations based on user input.
 
 ---
 
-## Project Structure
+## How to Run the Project
 
-movieRecs/
-├── app/ # Web app files
-├── data/ # Placeholder for downloaded datasets
-│ └── README.md # Placeholder to explain the data folder
-├── data_sample/ # Sample data including small, non-sensitive data for testing
-├── notebooks/ # Jupyter notebooks for experimentation
-├── src/ # Python scripts for the project
-│ ├── data_clean.py # Data cleaning script
-│ ├── data_explore.py # Data exploration script
-│ └── data_load.py # Data loading script
-├── tests/ # Test cases
-├── download_data.py # Script to download datasets
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
+### Prerequisites
 
-## Dependencies
+- Python 3.9+
+- Install dependencies listed in `requirements.txt`
 
-_streamlit_
-create and deploy public interactive apps
+### Steps to Run Locally
 
-_pandas_
-data manipulation and loading data sets
+1. Clone the repository:
 
-_matplotlib.pyplot_
-data visualisation
+   ```bash
+   git clone https://github.com/yourusername/movie-recommendation-system.git
+   cd movie-recommendation-system
+   ```
 
-_seaborn_
-higher data visualisation
+2. Install required Python packages:
 
-_cosine similarity_
-measures similarity between two vectors, here it calculates similarity of movies based on genres
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-_TfidVectorizer_
-converts text or genres into numerical vectors to identify importance of each genre to its movie
+3. Preprocess the data and generate similarity matrices:
 
-## Progress
+   ```bash
+   python3 src/init.py
+   ```
 
-Data Handling
+4. Run the Streamlit app:
 
-- download_data.py: automates process of fetching data from Google Drive to ensure efficient and lightweight repo management.
+   ```bash
+   streamlit run app/main.py
+   ```
 
-- data_clean.py: processes raw data by removing missing values and formatting data.
+5. Open the app in your browser using the local URL provided (e.g., `http://localhost:8501`).
 
-EDA (Exploratory Data Analysis)
+---
 
-- data_explore.py: provides tools for analysing and visualising data. Currently there are functions for:
-  - rating distribution histograms
-  - top-rated movies
-  - genre popularity
+## Datasets Used
 
-Streamlit Web App
+- **Movies Dataset**: Contains movie titles, genres, and metadata.
+- **Tags Dataset**: User-generated tags for movies.
+- **Ratings Dataset**: Average user ratings for movies.
 
-- main.py: a lightweight streamlit app serves as the interface for future recommendations
+All datasets are preprocessed to clean missing or invalid data and stored in the `data` folder.
 
-Testing
+---
 
-...
+## Technical Details
 
-## How the Recommender Works
+### Backend Pipeline
 
-Input:
+1. **Data Cleaning**:
 
-User provides the title of a movie (e.g., "Toy Story (1995)").
-The function retrieves the genres of all movies from the dataset.
+   - Missing genres and tags are replaced with default placeholders (`unknown`).
+   - Invalid or incomplete entries are removed to ensure data quality.
 
-TF-IDF Vectorization:
+2. **Similarity Computation**:
 
-Converts genres into numerical vectors, assigning weights to terms based on their importance (frequent genres like "Comedy" are weighted lower than unique genres like "Sci-Fi").
+   - **Genres**: TF-IDF vectorization on genres followed by cosine similarity.
+   - **Tags**: Similar TF-IDF-based approach using user-generated tags.
+   - **Ratings**: Pearson correlation similarity computed based on average ratings.
 
-Cosine Similarity:
+3. **Recommendation Logic**:
 
-Compares the genre vector of the input movie with all other movies to compute similarity scores.
+   - Blends genre, tag, and ratings similarities using user-defined weights.
+   - Returns the top N most similar movies based on the final blended score.
 
-Output:
+### Streamlit App
 
-A list of the most similar movies based on genres.
+- Built using Streamlit to ensure a lightweight and interactive user experience.
+- Features sliders for custom weight adjustments and a dynamic recommendation display.
+
+---
+
+## Screenshots
+
+### App Interface:
+
+### Example Recommendation Output:
+
+---
+
+## Future Improvements
+
+1. **Metadata Integration**:
+
+   - Incorporate additional data (e.g., cast, director, release year) into the recommendation algorithm.
+
+2. **Collaborative Filtering**:
+
+   - Add user-based or item-based collaborative filtering for more personalized results.
+
+3. **Hosting**:
+
+   - Deploy the app using Streamlit Cloud or other hosting services for public access.
+
+4. **UI Enhancements**:
+
+   - Improve the app design for a more professional and visually appealing interface.
+
+5. **Advanced ML Models**:
+
+   - Explore deep learning-based recommendation techniques (e.g., embeddings).
+
+---
+
+## Why This Project is Unique
+
+1. **Customizability**:
+
+   - Blending weights empower users to tailor recommendations to their preferences.
+
+2. **Scalable Architecture**:
+
+   - Precomputed similarity matrices ensure quick responses, even for large datasets.
+
+3. **Strong Technical Stack**:
+
+   - Demonstrates proficiency in Python, Pandas, NumPy, scikit-learn, and Streamlit.
+
+4. **Real-World Relevance**:
+
+   - Showcases a practical application of recommendation systems, a highly sought-after skill in industries like e-commerce, entertainment, and tech.
+
+---
+
+## How to Showcase This Project
+
+- Share the GitHub repository link with prospective employers or collaborators.
+- Deploy the app using Streamlit Cloud and include the live link in your resume.
+- Add this project to your portfolio and emphasize:
+  - Problem-solving (data preprocessing and recommendation logic).
+  - Backend/frontend integration skills.
+  - Customizability and user interaction capabilities.
+
+---
+
+## Acknowledgements
+
+- **Datasets**: Publicly available movie datasets used in the project.
+- **Tools**: Built with Python, Pandas, NumPy, scikit-learn, and Streamlit.
+- **Inspiration**: Practical application of machine learning techniques in recommendation systems.
+
+---
+
+Feel free to reach out for any questions or suggestions!

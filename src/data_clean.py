@@ -1,8 +1,15 @@
 import pandas as pd
 import os
 
+"""
+Clean movies data by reading file, handling missing data, and ensuring data is
+all formatted correctly and consistently
+
+Args: file_path a string path to the movies data file
+Returns: pd.DataFrame is a cleaned movies dataframe.
+"""
+
 def clean_movies(file_path):
-    """Clean the movies data."""
     movies = pd.read_csv(
         file_path,
         sep="::",
@@ -14,13 +21,30 @@ def clean_movies(file_path):
     movies["genres"] = movies["genres"].fillna("unknown").str.split("|")
     return movies
 
+"""
+Clean ratings data by turning file into DataFrame
+Args: file_path is a string path to the ratings data file
+Returns: pd.DataFrame is a cleaned ratings DataFrame
+"""
+
 def clean_ratings(file_path):
-    """Clean the ratings data."""
-    ratings = pd.read_csv(file_path, sep="::", engine="python", header=None, names=["userId", "movieId", "rating", "timestamp"])
+    ratings = pd.read_csv(
+        file_path,
+        sep="::",
+        engine="python",
+        header=None,
+        names=["userId", "movieId", "rating", "timestamp"]
+    )
     return ratings
 
+"""
+Clean tags data by reading file, handling missing data, and ensuring data is
+all formatted correctly and consistently
+Args: file_path is a string path to the tags data file
+Returns: pd.DataFrame is a cleaned tags DataFrame
+"""
+
 def clean_tags(file_path):
-    """Clean the tags data."""
     tags = pd.read_csv(
         file_path,
         sep="::",
@@ -30,44 +54,50 @@ def clean_tags(file_path):
     )
     # Ensure all tags are strings and handle missing/invalid values
     tags["tag"] = tags["tag"].fillna("unknown").astype(str).str.lower().str.strip()
+    tags["tag"] = tags["tag"].replace("", "unknown")  # Handle empty strings explicitly
 
-    # Replace tags containing only whitespace or invalid values with "unknown"
-    tags["tag"] = tags["tag"].replace("", "unknown")
-    tags["tag"] = tags["tag"].replace("unknown", "unknown")  # Reinforce replacements
-
-    # Debugging: Print sample tags and missing counts
+    # Debugging: Print sample tags and counts of missing/invalid tags
     print("Sample cleaned tags:", tags["tag"].head())
     print(f"Total missing tags after cleaning: {tags['tag'].isna().sum()}")
     print(f"Total empty tags after cleaning: {(tags['tag'] == 'unknown').sum()}")
 
     return tags
 
+"""
+Save cleaned movies, ratings, and tags data files to specified output directory
+Args:
+movies: pd.DataFrame holding cleaned movies
+ratings: pd.DataFrame hodling cleaned ratings
+tags: pd.DataFrame holding cleaned tags
+output_dir: string path to directory
+"""
+
 def save_cleaned_data(movies, ratings, tags, output_dir="data"):
-    """Save cleaned data to CSV."""
+    # Create the output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # Debugging: Check for missing tags before saving
+    # Debugging: Check for any issues before saving
     if tags["tag"].isna().any():
         print("Warning: Missing tags detected before saving.")
     if tags["tag"].str.strip().eq("").any():
         print("Warning: Empty tags detected before saving.")
 
-    # Save files
+    # Save the cleaned data to CSV files
     movies.to_csv(os.path.join(output_dir, "cleaned_movies.csv"), index=False)
     ratings.to_csv(os.path.join(output_dir, "cleaned_ratings.csv"), index=False)
     tags.to_csv(os.path.join(output_dir, "cleaned_tags.csv"), index=False)
     print("Cleaned data saved successfully.")
 
-
 if __name__ == "__main__":
-    # Update the paths to match the subdirectory
-    base_dir = "data/ml-10M100K"  # Adjust the path here
+    # Define file paths for the input data
+    base_dir = "data/ml-10M100K"  # Adjust this path as needed
     movies_file = os.path.join(base_dir, "movies.dat")
     ratings_file = os.path.join(base_dir, "ratings.dat")
     tags_file = os.path.join(base_dir, "tags.dat")
     
     try:
+        # Perform data cleaning steps
         print("Cleaning movies data...")
         movies = clean_movies(movies_file)
         print("Cleaning ratings data...")
@@ -75,6 +105,7 @@ if __name__ == "__main__":
         print("Cleaning tags data...")
         tags = clean_tags(tags_file)
 
+        # Save the cleaned data
         print("Saving cleaned data...")
         save_cleaned_data(movies, ratings, tags)
     except FileNotFoundError as e:
