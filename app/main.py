@@ -9,15 +9,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../src"))
 
 from recommender import recommend_movies
 
-"""
-Cache and load the required data files for the recommendation system.
-The function caches the data to avoid reloading on every app interaction.
-Returns:
-    movies_df (DataFrame): Cleaned movies dataset.
-    genre_similarity (numpy array): Genre similarity matrix.
-    tag_similarity (numpy array): Tag similarity matrix.
-    ratings_similarity (numpy array): Ratings similarity matrix.
-"""
+# Cache and load the required data files for the recommendation system.
+# The function caches the data to avoid reloading on every app interaction.
+# Returns:
+#     movies_df (DataFrame): Cleaned movies dataset.
+#     genre_similarity (numpy array): Genre similarity matrix.
+#     tag_similarity (numpy array): Tag similarity matrix.
+#     ratings_similarity (numpy array): Ratings similarity matrix.
 
 @st.cache_data
 def load_data():
@@ -27,13 +25,13 @@ def load_data():
     ratings_similarity = np.load("data/ratings_similarity_matrix.npy")
     return movies_df, genre_similarity, tag_similarity, ratings_similarity
 
-"""
-The main function initializes and runs the Streamlit app.
-Features include user input for movie title, similarity weight adjustments, 
-and generating movie recommendations.
-"""
 
-def main():
+# The main function initializes and runs the Streamlit app.
+# Features include user input for movie title, similarity weight adjustments, 
+# and generating movie recommendations.
+
+
+def main():    
     # Load the preprocessed data
     movies_df, genre_similarity, tag_similarity, ratings_similarity = load_data()
 

@@ -61,7 +61,7 @@ The **Movie Recommendation System** provides personalized movie recommendations 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/movie-recommendation-system.git
+   git clone https://github.com/ethanwong3/movieRecs.git
    cd movie-recommendation-system
    ```
 
@@ -124,11 +124,9 @@ All datasets are preprocessed to clean missing or invalid data and stored in the
 
 ---
 
-## Screenshots
+## Screenshots of App Interface
 
-### App Interface:
-
-### Example Recommendation Output:
+![Recommender Screenshot](image.png)
 
 ---
 
@@ -173,17 +171,6 @@ All datasets are preprocessed to clean missing or invalid data and stored in the
 4. **Real-World Relevance**:
 
    - Showcases a practical application of recommendation systems, a highly sought-after skill in industries like e-commerce, entertainment, and tech.
-
----
-
-## How to Showcase This Project
-
-- Share the GitHub repository link with prospective employers or collaborators.
-- Deploy the app using Streamlit Cloud and include the live link in your resume.
-- Add this project to your portfolio and emphasize:
-  - Problem-solving (data preprocessing and recommendation logic).
-  - Backend/frontend integration skills.
-  - Customizability and user interaction capabilities.
 
 ---
 
