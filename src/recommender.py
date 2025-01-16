@@ -2,18 +2,18 @@ import pandas as pd
 import numpy as np
 
 """
-Generate movie recommendations based on blended similarity metrics.
+Generate movie recommendations based on blended similarity metrics
 Args:
-- movie_title: string, the title of the movie to base recommendations on.
-- movies_df: DataFrame, the dataset containing movie information.
-- genre_similarity: NumPy array, the precomputed genre similarity matrix.
-- tag_similarity: NumPy array, the precomputed tag similarity matrix.
-- ratings_similarity: NumPy array, the precomputed ratings similarity matrix.
-- genre_weight: float, weight for genre similarity in blended similarity (default: 0.5).
-- tag_weight: float, weight for tag similarity in blended similarity (default: 0.3).
-- ratings_weight: float, weight for ratings similarity in blended similarity (default: 0.2).
-- top_n: int, the number of recommendations to return (default: 10).
-- similarity_threshold: float, minimum similarity threshold for recommendations (default: 0.1).
+- movie_title: string, the title of the movie to base recommendations on
+- movies_df: DataFrame, the dataset containing movie information
+- genre_similarity: NumPy array, the precomputed genre similarity matrix
+- tag_similarity: NumPy array, the precomputed tag similarity matrix
+- ratings_similarity: NumPy array, the precomputed ratings similarity matrix
+- genre_weight: float, weight for genre similarity in blended similarity (default: 0.5)
+- tag_weight: float, weight for tag similarity in blended similarity (default: 0.3)
+- ratings_weight: float, weight for ratings similarity in blended similarity (default: 0.2)
+- top_n: int, the number of recommendations to return (default: 10)
+- similarity_threshold: float, minimum similarity threshold for recommendations (default: 0.1)
 Returns:
 - A DataFrame containing the recommended movies and their genres.
 Raises:
