@@ -28,19 +28,37 @@ def clean_tags(file_path):
         header=None,
         names=["userId", "movieId", "tag", "timestamp"]
     )
-    # Ensure tags are strings and handle missing values
+    # Ensure all tags are strings and handle missing/invalid values
     tags["tag"] = tags["tag"].fillna("unknown").astype(str).str.lower().str.strip()
+
+    # Replace tags containing only whitespace or invalid values with "unknown"
+    tags["tag"] = tags["tag"].replace("", "unknown")
+    tags["tag"] = tags["tag"].replace("unknown", "unknown")  # Reinforce replacements
+
+    # Debugging: Print sample tags and missing counts
+    print("Sample cleaned tags:", tags["tag"].head())
+    print(f"Total missing tags after cleaning: {tags['tag'].isna().sum()}")
+    print(f"Total empty tags after cleaning: {(tags['tag'] == 'unknown').sum()}")
+
     return tags
 
 def save_cleaned_data(movies, ratings, tags, output_dir="data"):
     """Save cleaned data to CSV."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    
+
+    # Debugging: Check for missing tags before saving
+    if tags["tag"].isna().any():
+        print("Warning: Missing tags detected before saving.")
+    if tags["tag"].str.strip().eq("").any():
+        print("Warning: Empty tags detected before saving.")
+
+    # Save files
     movies.to_csv(os.path.join(output_dir, "cleaned_movies.csv"), index=False)
     ratings.to_csv(os.path.join(output_dir, "cleaned_ratings.csv"), index=False)
     tags.to_csv(os.path.join(output_dir, "cleaned_tags.csv"), index=False)
     print("Cleaned data saved successfully.")
+
 
 if __name__ == "__main__":
     # Update the paths to match the subdirectory

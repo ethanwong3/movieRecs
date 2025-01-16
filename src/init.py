@@ -14,16 +14,13 @@ def initialize_project():
     """Initialize the project by running all scripts in order."""
     scripts = [
         "src/data_clean.py",
-        "src/data_preprocessing.py"
+        "src/data_preprocessing.py"  # Include preprocessing script only as subprocess
     ]
 
     for script in scripts:
         run_script(script)
 
-    # Explicitly call preprocess_data for similarity matrices
-    print("Running data preprocessing pipeline...")
-    from src.data_preprocessing import preprocess_data
-    preprocess_data()
+    print("All preprocessing steps completed successfully.")
 
 if __name__ == "__main__":
     initialize_project()

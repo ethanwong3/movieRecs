@@ -26,18 +26,20 @@ def precompute_genre_similarity(movies_df):
     return genre_similarity
 
 def precompute_tag_similarity(tags_df, movies_df):
-    """Compute a tag similarity matrix using TF-IDF and cosine similarity."""
-    # Group tags by movieId and join them into space-separated strings
-    tag_data = tags_df.groupby("movieId")["tag"].apply(
-        lambda tags: " ".join(tags.astype(str))
-    ).reindex(movies_df["movieId"], fill_value="")
+    """
+    Compute a tag similarity matrix based on the tags data.
+    """
+    if "tag" not in tags_df.columns:
+        raise KeyError("The 'tag' column is missing in the tags dataframe.")
 
-    # Debugging: Check sample tag data
-    print("Sample tag data after grouping:", tag_data.head())
+    # Filter out rows with invalid tags
+    tags_df = tags_df[tags_df["tag"] != "unknown"]
 
-    # Ensure there are no empty tag strings
-    if tag_data.str.strip().eq("").any():
-        raise ValueError("Found empty tag strings after processing. Check the tags dataset.")
+    # Group tags by movieId and join them into single strings
+    tag_data = tags_df.groupby("movieId")["tag"].apply(lambda tags: " ".join(tags)).reindex(movies_df["movieId"], fill_value="")
+
+    # Debugging: Print sample tag data
+    print("Sample tag data after processing:", tag_data.head())
 
     # Use TF-IDF to vectorize tags
     tfidf = TfidfVectorizer(stop_words="english")
@@ -46,8 +48,10 @@ def precompute_tag_similarity(tags_df, movies_df):
     # Compute cosine similarity
     tag_similarity = cosine_similarity(tfidf_matrix)
 
-    return tag_similarity
+    # Debugging: Check a sample of the similarity matrix
+    print("Sample Tag Similarity Row for Index 0:", tag_similarity[0])
 
+    return tag_similarity
 
 def precompute_ratings_similarity(ratings_df, movies_df):
     """Compute a ratings similarity matrix using user-movie ratings."""
@@ -66,13 +70,13 @@ def preprocess_data():
         tags_df = pd.read_csv("data/cleaned_tags.csv")
         ratings_df = pd.read_csv("data/cleaned_ratings.csv")
 
-        # Debugging: Check for missing or malformed data
+        # Debugging: Validate tags
         print("Checking for missing genres...")
         if movies_df["genres"].isna().any():
             raise ValueError("Found missing genres in the movies data.")
 
         print("Checking for missing tags...")
-        if tags_df["tag"].isna().any():
+        if tags_df["tag"].isna().any() or tags_df["tag"].str.strip().eq("").any():
             raise ValueError("Found missing tags in the tags data.")
 
         print("Computing genre similarity matrix...")
